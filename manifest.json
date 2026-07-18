@@ -1,6 +1,6 @@
 {
-  "name": "GymTracker",
-  "short_name": "GymTracker",
+  "name": "Gym Workout",
+  "short_name": "Gym Workout",
   "description": "Cadastre e acompanhe seus treinos de academia",
   "start_url": ".",
   "display": "standalone",
