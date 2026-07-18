@@ -34,11 +34,15 @@ function saveWorkouts() {
   try { localStorage.setItem(KEY_WORKOUTS, JSON.stringify(workouts)); } catch {}
 }
 
+function sessionsToPlainObject() {
+  const plain = {};
+  for (const [k, v] of Object.entries(sessions)) plain[k] = [...v];
+  return plain;
+}
+
 function saveSessions() {
   try {
-    const plain = {};
-    for (const [k, v] of Object.entries(sessions)) plain[k] = [...v];
-    localStorage.setItem(KEY_SESSIONS, JSON.stringify(plain));
+    localStorage.setItem(KEY_SESSIONS, JSON.stringify(sessionsToPlainObject()));
   } catch {}
 }
 
@@ -57,6 +61,160 @@ function loadData() {
       sessions[k] = new Set(Array.isArray(v) ? v : []);
     }
   } catch { sessions = {}; }
+}
+
+function buildExportPayload() {
+  return {
+    version: 1,
+    exportedAt: new Date().toISOString(),
+    workouts,
+    sessions: sessionsToPlainObject(),
+  };
+}
+
+function exportDataAsJson() {
+  try {
+    const payload = buildExportPayload();
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    const stamp = new Date().toISOString().slice(0, 10);
+
+    a.href = url;
+    a.download = `gymtracker-backup-${stamp}.json`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+    showSnackbar('Arquivo JSON exportado');
+  } catch {
+    showSnackbar('Falha ao exportar JSON');
+  }
+}
+
+function parseImportPayload(data) {
+  if (Array.isArray(data)) {
+    return { workouts: data, sessions: {} };
+  }
+
+  if (data && typeof data === 'object' && Array.isArray(data.workouts)) {
+    const rawSessions = data.sessions;
+    return {
+      workouts: data.workouts,
+      sessions: rawSessions && typeof rawSessions === 'object' ? rawSessions : {},
+    };
+  }
+
+  throw new Error('Formato de arquivo invalido');
+}
+
+function normalizeImportedWorkouts(rawWorkouts) {
+  const normalized = [];
+  const usedWorkoutIds = new Set();
+
+  const nextWorkoutId = candidate => {
+    let id = String(candidate || genId()).trim();
+    if (!id) id = genId();
+    while (usedWorkoutIds.has(id)) id = genId();
+    usedWorkoutIds.add(id);
+    return id;
+  };
+
+  rawWorkouts.forEach(rawWorkout => {
+    if (!rawWorkout || typeof rawWorkout !== 'object') return;
+
+    const workoutId = nextWorkoutId(rawWorkout.id);
+    const workoutName = String(rawWorkout.name ?? '').trim() || 'Treino sem nome';
+    const usedExerciseIds = new Set();
+    const exercises = Array.isArray(rawWorkout.exercises) ? rawWorkout.exercises : [];
+
+    const normalizedExercises = exercises
+      .filter(ex => ex && typeof ex === 'object')
+      .map(ex => {
+        let exId = String(ex.id || genId()).trim();
+        if (!exId) exId = genId();
+        while (usedExerciseIds.has(exId)) exId = genId();
+        usedExerciseIds.add(exId);
+
+        const sets = Math.max(1, parseInt(ex.sets, 10) || 1);
+
+        return {
+          id: exId,
+          name: String(ex.name ?? '').trim() || 'Exercicio sem nome',
+          sets,
+          reps: String(ex.reps ?? '').trim() || '1',
+          observation: String(ex.observation ?? '').trim(),
+        };
+      });
+
+    normalized.push({
+      id: workoutId,
+      name: workoutName,
+      exercises: normalizedExercises,
+    });
+  });
+
+  return normalized;
+}
+
+function normalizeImportedSessions(rawSessions, normalizedWorkouts) {
+  const validExerciseByWorkout = new Map();
+  normalizedWorkouts.forEach(workout => {
+    validExerciseByWorkout.set(workout.id, new Set(workout.exercises.map(ex => ex.id)));
+  });
+
+  const nextSessions = {};
+  if (!rawSessions || typeof rawSessions !== 'object') return nextSessions;
+
+  for (const [workoutId, doneIds] of Object.entries(rawSessions)) {
+    if (!validExerciseByWorkout.has(workoutId)) continue;
+    if (!Array.isArray(doneIds)) continue;
+
+    const validExerciseIds = validExerciseByWorkout.get(workoutId);
+    const cleanSet = new Set();
+    doneIds.forEach(exerciseId => {
+      const id = String(exerciseId);
+      if (validExerciseIds.has(id)) cleanSet.add(id);
+    });
+    nextSessions[workoutId] = cleanSet;
+  }
+
+  return nextSessions;
+}
+
+function rerenderActiveView() {
+  const activeView = document.querySelector('.bottom-nav__item.active')?.dataset.view;
+  if (activeView === 'gerenciar') {
+    renderGerenciar();
+  } else {
+    renderTreinar();
+  }
+}
+
+async function handleImportFileChange(event) {
+  const input = event.target;
+  const file = input.files?.[0];
+  if (!file) return;
+
+  try {
+    const fileText = await file.text();
+    const parsed = JSON.parse(fileText);
+    const payload = parseImportPayload(parsed);
+    const nextWorkouts = normalizeImportedWorkouts(payload.workouts);
+
+    workouts = nextWorkouts;
+    sessions = normalizeImportedSessions(payload.sessions, nextWorkouts);
+    activeWorkoutId = workouts[0]?.id ?? null;
+
+    saveWorkouts();
+    saveSessions();
+    rerenderActiveView();
+    showSnackbar('Importacao concluida');
+  } catch {
+    showSnackbar('Arquivo JSON invalido');
+  } finally {
+    input.value = '';
+  }
 }
 
 // ── Navigation ───────────────────────────────────────────────────────────────
@@ -375,6 +533,23 @@ function deleteExercise(workoutId, exerciseId) {
   showSnackbar('Exercício excluído');
 }
 
+function clearAllData() {
+  workouts = [];
+  sessions = {};
+  activeWorkoutId = null;
+
+  try {
+    localStorage.removeItem(KEY_WORKOUTS);
+    localStorage.removeItem(KEY_SESSIONS);
+  } catch {
+    saveWorkouts();
+    saveSessions();
+  }
+
+  rerenderActiveView();
+  showSnackbar('Todos os dados foram apagados');
+}
+
 function sanitizeExercise(data) {
   return {
     name:        data.name.trim(),
@@ -541,6 +716,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // FAB
   document.getElementById('fab-add-workout').addEventListener('click', openAddWorkoutModal);
+
+  // Import/Export JSON
+  document.getElementById('btn-export-data').addEventListener('click', exportDataAsJson);
+  document.getElementById('btn-import-data').addEventListener('click', () => {
+    document.getElementById('import-file-input').click();
+  });
+  document.getElementById('import-file-input').addEventListener('change', handleImportFileChange);
+  document.getElementById('btn-reset-data').addEventListener('click', () => {
+    openConfirm(
+      'Isso vai apagar todos os treinos e progresso salvos neste dispositivo. Deseja continuar?',
+      clearAllData
+    );
+  });
 
   // Reset session
   document.getElementById('btn-reset-session').addEventListener('click', resetSession);

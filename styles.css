@@ -180,6 +180,13 @@ textarea { resize: vertical; }
   position: relative; z-index: 1;
 }
 
+.footer-credit {
+  text-align: center;
+  padding: 8px 16px 92px;
+  font-size: 12px;
+  color: var(--on-surface-medium);
+}
+
 /* =============================================
    VIEW: TREINAR
    ============================================= */
@@ -426,6 +433,48 @@ textarea { resize: vertical; }
 /* =============================================
    VIEW: GERENCIAR
    ============================================= */
+
+.manage-tools {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+
+.manage-tools__btn {
+  flex: 1 1 140px;
+  border: 1.5px solid var(--outline);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--on-surface);
+  font-size: 13px;
+  font-weight: 500;
+  padding: 10px 12px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background .15s, border-color .15s;
+}
+
+.manage-tools__btn .material-icons-round {
+  font-size: 18px;
+}
+
+.manage-tools__btn:active {
+  background: var(--surface-variant);
+  border-color: var(--outline-strong);
+}
+
+.manage-tools__btn--danger {
+  border-color: #f3c1be;
+  color: var(--error);
+}
+
+.manage-tools__btn--danger:active {
+  background: var(--error-container);
+  border-color: #e7a6a2;
+}
 
 .workout-list {
   display: flex;
