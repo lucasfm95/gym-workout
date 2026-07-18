@@ -95,13 +95,6 @@ O import aceita:
 - Sem sincronização em nuvem
 - Sem backend dedicado
 
-## Próximos passos sugeridos
-
-- Sincronização em nuvem com Supabase ou Firebase
-- Histórico de cargas e repetições por exercício
-- Duplicar treino com um toque
-- Filtros e busca por exercício
-- Relatórios semanais de conclusão
 
 ## Crédito
 
