@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#1a73e8">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="GymTracker">
+  <title>GymTracker</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/icon?family=Material+Icons+Round" rel="stylesheet">
+  <link rel="manifest" href="manifest.json">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <!-- App Bar -->
+  <header class="app-bar">
+    <span class="material-icons-round app-bar__icon">fitness_center</span>
+    <h1 class="app-bar__title">GymTracker</h1>
+  </header>
+
+  <!-- Main Content -->
+  <main class="main-content">
+
+    <!-- ====== VIEW: TREINAR ====== -->
+    <section id="view-treinar" class="view active">
+
+      <div id="treinar-empty" class="empty-state" style="display:none">
+        <span class="material-icons-round empty-state__icon">sports_gymnastics</span>
+        <p class="empty-state__title">Nenhum treino cadastrado</p>
+        <p class="empty-state__subtitle">Vá para "Gerenciar" e adicione seu primeiro treino para começar.</p>
+        <button class="btn-filled" style="margin-top:20px" id="btn-go-gerenciar">
+          Ir para Gerenciar
+        </button>
+      </div>
+
+      <div id="treinar-content">
+        <!-- Workout Chips -->
+        <div class="workout-chips-container" id="workout-chips"></div>
+
+        <!-- Progress -->
+        <div class="progress-section" id="progress-section" style="display:none">
+          <div class="progress-header">
+            <span id="progress-label">0 / 0 exercícios</span>
+            <button class="btn-text btn-text--small" id="btn-reset-session">Reiniciar</button>
+          </div>
+          <div class="progress-bar">
+            <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <!-- Exercise List -->
+        <div class="exercise-list" id="exercise-list"></div>
+      </div>
+
+    </section>
+
+    <!-- ====== VIEW: GERENCIAR ====== -->
+    <section id="view-gerenciar" class="view">
+
+      <div id="gerenciar-empty" class="empty-state" style="display:none">
+        <span class="material-icons-round empty-state__icon">add_circle_outline</span>
+        <p class="empty-state__title">Nenhum treino ainda</p>
+        <p class="empty-state__subtitle">Toque no botão <strong>+</strong> abaixo para criar seu primeiro treino.</p>
+      </div>
+
+      <div class="workout-list" id="workout-list"></div>
+
+    </section>
+
+  </main>
+
+  <!-- FAB (Gerenciar only) -->
+  <button class="fab" id="fab-add-workout" style="display:none" aria-label="Novo treino">
+    <span class="material-icons-round">add</span>
+  </button>
+
+  <!-- Bottom Navigation -->
+  <nav class="bottom-nav">
+    <button class="bottom-nav__item active" data-view="treinar">
+      <span class="material-icons-round">fitness_center</span>
+      <span>Treinar</span>
+    </button>
+    <button class="bottom-nav__item" data-view="gerenciar">
+      <span class="material-icons-round">tune</span>
+      <span>Gerenciar</span>
+    </button>
+  </nav>
+
+  <!-- ====== MODAL: Treino ====== -->
+  <div class="modal-overlay" id="modal-workout" role="dialog" aria-modal="true">
+    <div class="modal">
+      <h2 class="modal__title" id="modal-workout-title">Novo Treino</h2>
+      <div class="form-field">
+        <label class="form-label" for="workout-name-input">Nome do Treino</label>
+        <input type="text" class="form-input" id="workout-name-input"
+               placeholder="Ex: Treino A, Peito/Tríceps, Pernas...">
+      </div>
+      <div class="modal__actions">
+        <button class="btn-text" id="btn-cancel-workout">Cancelar</button>
+        <button class="btn-filled" id="btn-save-workout">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== MODAL: Exercício ====== -->
+  <div class="modal-overlay" id="modal-exercise" role="dialog" aria-modal="true">
+    <div class="modal">
+      <h2 class="modal__title" id="modal-exercise-title">Novo Exercício</h2>
+      <div class="form-field">
+        <label class="form-label" for="exercise-name-input">Nome do Exercício</label>
+        <input type="text" class="form-input" id="exercise-name-input"
+               placeholder="Ex: Supino Reto, Rosca Direta...">
+      </div>
+      <div class="form-row">
+        <div class="form-field">
+          <label class="form-label" for="exercise-sets-input">Séries</label>
+          <input type="number" class="form-input" id="exercise-sets-input"
+                 placeholder="4" min="1" max="99">
+        </div>
+        <div class="form-field">
+          <label class="form-label" for="exercise-reps-input">Repetições</label>
+          <input type="text" class="form-input" id="exercise-reps-input"
+                 placeholder="12 ou 8-12">
+        </div>
+      </div>
+      <div class="form-field">
+        <label class="form-label" for="exercise-obs-input">Observação <span style="font-weight:400;text-transform:none;letter-spacing:0">(opcional)</span></label>
+        <textarea class="form-input form-textarea" id="exercise-obs-input"
+                  placeholder="Dicas de execução, descanso, peso..."></textarea>
+      </div>
+      <div class="modal__actions">
+        <button class="btn-text" id="btn-cancel-exercise">Cancelar</button>
+        <button class="btn-filled" id="btn-save-exercise">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ====== MODAL: Confirmar Exclusão ====== -->
+  <div class="modal-overlay" id="modal-confirm" role="dialog" aria-modal="true">
+    <div class="modal modal--small">
+      <h2 class="modal__title">Confirmar exclusão</h2>
+      <p class="modal__text" id="modal-confirm-text"></p>
+      <div class="modal__actions">
+        <button class="btn-text" id="btn-cancel-confirm">Cancelar</button>
+        <button class="btn-danger" id="btn-confirm-delete">Excluir</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Snackbar -->
+  <div class="snackbar" id="snackbar" role="status" aria-live="polite"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>

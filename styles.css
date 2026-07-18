@@ -1,0 +1,877 @@
+/* =============================================
+   GymTracker — Material Design 3 inspired
+   ============================================= */
+
+/* ---- Variables ---- */
+:root {
+  --primary:            #1a73e8;
+  --primary-dark:       #1557b0;
+  --primary-container:  #e8f0fe;
+  --on-primary:         #ffffff;
+  --secondary:          #34a853;
+  --secondary-container:#e6f4ea;
+  --on-secondary:       #ffffff;
+  --error:              #d93025;
+  --error-container:    #fce8e6;
+  --surface:            #ffffff;
+  --surface-variant:    #f8f9fa;
+  --background:         #f1f3f4;
+  --on-surface:         #202124;
+  --on-surface-medium:  #5f6368;
+  --on-surface-low:     #80868b;
+  --outline:            #dadce0;
+  --outline-strong:     #bdc1c6;
+
+  --shadow-1: 0 1px 2px rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+  --shadow-2: 0 1px 2px rgba(60,64,67,.3), 0 2px 6px 2px rgba(60,64,67,.15);
+  --shadow-3: 0 4px 8px 3px rgba(60,64,67,.15), 0 1px 3px rgba(60,64,67,.3);
+
+  --appbar-height: 56px;
+  --nav-height:    64px;
+
+  /* Safe areas — iPhone 15 Pro Max: Dynamic Island (~59px top) + home indicator (~34px bottom) */
+  --safe-top:    env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left:   env(safe-area-inset-left, 0px);
+  --safe-right:  env(safe-area-inset-right, 0px);
+
+  /* Total heights including safe areas */
+  --appbar-total: calc(var(--appbar-height) + var(--safe-top));
+  --nav-total:    calc(var(--nav-height) + var(--safe-bottom));
+
+  --r-sm:  8px;
+  --r-md:  12px;
+  --r-lg:  16px;
+  --r-xl:  28px;
+  --r-full:9999px;
+}
+
+/* ---- Reset ---- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+html {
+  font-size: 16px;
+  -webkit-tap-highlight-color: transparent;
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Roboto', sans-serif;
+  background: var(--background);
+  color: var(--on-surface);
+  min-height: 100vh;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  overscroll-behavior: none;
+}
+
+button {
+  font-family: inherit;
+  cursor: pointer;
+  /* Remove 300ms tap delay on iOS */
+  touch-action: manipulation;
+}
+input, textarea { font-family: inherit; }
+textarea { resize: vertical; }
+
+/* ---- App Bar ---- */
+.app-bar {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  /* Height expands to cover Dynamic Island safe area */
+  height: var(--appbar-total);
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  /* Top padding pushes content below Dynamic Island */
+  padding: var(--safe-top) 16px 0;
+  gap: 10px;
+  z-index: 100;
+  box-shadow: var(--shadow-1);
+}
+
+.app-bar__icon {
+  color: var(--primary);
+  font-size: 26px;
+}
+
+.app-bar__title {
+  font-size: 20px;
+  font-weight: 500;
+  color: var(--on-surface);
+  letter-spacing: .15px;
+}
+
+/* ---- Main Content ---- */
+.main-content {
+  margin-top: var(--appbar-total);
+  margin-bottom: var(--nav-total);
+  min-height: calc(100vh - var(--appbar-total) - var(--nav-total));
+  min-height: calc(100dvh - var(--appbar-total) - var(--nav-total));
+}
+
+/* ---- Views ---- */
+.view {
+  display: none;
+  padding: 16px;
+  animation: fadeSlideUp .2s ease both;
+}
+
+.view.active { display: block; }
+
+@keyframes fadeSlideUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ---- Bottom Navigation ---- */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  /* Height expands to cover home indicator safe area */
+  height: var(--nav-total);
+  background: var(--surface);
+  display: flex;
+  align-items: flex-start; /* items sit at top; safe area is blank space below */
+  border-top: 1px solid var(--outline);
+  z-index: 100;
+}
+
+.bottom-nav__item {
+  flex: 1;
+  height: var(--nav-height); /* fixed to original nav height, not expanded area */
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: none;
+  background: none;
+  color: var(--on-surface-medium);
+  font-size: 12px;
+  font-weight: 500;
+  padding: 6px 0 8px;
+  transition: color .2s;
+  position: relative;
+  touch-action: manipulation;
+}
+
+.bottom-nav__item::before {
+  content: '';
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 64px; height: 32px;
+  border-radius: 16px;
+  background: transparent;
+  transition: background .2s;
+}
+
+.bottom-nav__item.active { color: var(--primary); }
+.bottom-nav__item.active::before { background: var(--primary-container); }
+
+.bottom-nav__item .material-icons-round {
+  font-size: 24px;
+  position: relative; z-index: 1;
+}
+
+.bottom-nav__item > span:last-child {
+  position: relative; z-index: 1;
+}
+
+/* =============================================
+   VIEW: TREINAR
+   ============================================= */
+
+/* Workout Chips */
+.workout-chips-container {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 0 14px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  -webkit-overflow-scrolling: touch;
+}
+.workout-chips-container::-webkit-scrollbar { display: none; }
+
+.workout-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border-radius: var(--r-full);
+  border: 1.5px solid var(--outline);
+  background: var(--surface);
+  color: var(--on-surface-medium);
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  transition: all .2s;
+  flex-shrink: 0;
+}
+.workout-chip:active { transform: scale(.96); }
+.workout-chip.active {
+  background: var(--primary-container);
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.workout-chip__badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--primary);
+  color: #fff;
+  border-radius: var(--r-full);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 1px 7px;
+  min-width: 22px;
+  line-height: 1.5;
+}
+
+.workout-chip.active .workout-chip__badge { background: var(--primary); }
+.workout-chip__badge.done { background: var(--secondary); }
+
+/* Progress */
+.progress-section {
+  margin-bottom: 16px;
+}
+
+.progress-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.progress-header > span {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--on-surface-medium);
+}
+
+.progress-bar {
+  height: 6px;
+  background: var(--outline);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 3px;
+  transition: width .45s cubic-bezier(.4,0,.2,1);
+  width: 0%;
+}
+
+.progress-fill.complete { background: var(--secondary); }
+
+/* Exercise Cards */
+.exercise-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.exercise-card {
+  background: var(--surface);
+  border-radius: var(--r-md);
+  padding: 14px 16px;
+  box-shadow: var(--shadow-1);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  border: 2px solid transparent;
+  transition: background .25s, border-color .25s, transform .1s;
+  -webkit-user-select: none;
+  user-select: none;
+  touch-action: manipulation;
+}
+
+.exercise-card:active { transform: scale(.985); }
+
+.exercise-card.done {
+  background: var(--secondary-container);
+  border-color: var(--secondary);
+}
+
+/* Check circle */
+.exercise-card__check {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border: 2.5px solid var(--outline);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all .25s cubic-bezier(.4,0,.2,1);
+  background: transparent;
+}
+
+.exercise-card__check .material-icons-round {
+  font-size: 18px;
+  color: transparent;
+  transition: color .2s;
+}
+
+.exercise-card.done .exercise-card__check {
+  background: var(--secondary);
+  border-color: var(--secondary);
+}
+
+.exercise-card.done .exercise-card__check .material-icons-round {
+  color: #fff;
+}
+
+/* Card content */
+.exercise-card__content { flex: 1; min-width: 0; }
+
+.exercise-card__name {
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--on-surface);
+  margin-bottom: 5px;
+  transition: color .2s;
+}
+
+.exercise-card.done .exercise-card__name {
+  text-decoration: line-through;
+  color: var(--on-surface-medium);
+}
+
+.exercise-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  align-items: center;
+}
+
+.exercise-card__badge {
+  background: var(--primary-container);
+  color: var(--primary);
+  padding: 2px 9px;
+  border-radius: var(--r-full);
+  font-size: 12px;
+  font-weight: 500;
+  transition: background .2s, color .2s;
+}
+
+.exercise-card.done .exercise-card__badge {
+  background: #c8e6c9;
+  color: #2e7d32;
+}
+
+.exercise-card__obs {
+  font-size: 12px;
+  color: var(--on-surface-medium);
+  margin-top: 6px;
+  font-style: italic;
+  line-height: 1.4;
+}
+
+/* Workout Complete Banner */
+.workout-complete-banner {
+  background: var(--secondary-container);
+  border: 2px solid var(--secondary);
+  border-radius: var(--r-md);
+  padding: 24px 16px;
+  text-align: center;
+  margin-bottom: 12px;
+  animation: popIn .4s cubic-bezier(.175,.885,.32,1.275) both;
+}
+
+@keyframes popIn {
+  from { transform: scale(.8); opacity: 0; }
+  to   { transform: scale(1);  opacity: 1; }
+}
+
+.workout-complete-banner__emoji {
+  font-size: 48px;
+  display: block;
+  margin-bottom: 10px;
+  line-height: 1;
+}
+
+.workout-complete-banner__title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #2e7d32;
+  margin-bottom: 4px;
+}
+
+.workout-complete-banner__sub {
+  font-size: 14px;
+  color: #388e3c;
+}
+
+/* Empty state inside treinar (no exercises) */
+.exercise-empty {
+  text-align: center;
+  padding: 32px 16px;
+  color: var(--on-surface-medium);
+  font-size: 14px;
+}
+.exercise-empty .material-icons-round {
+  font-size: 48px;
+  color: var(--outline);
+  display: block;
+  margin-bottom: 10px;
+}
+
+/* =============================================
+   VIEW: GERENCIAR
+   ============================================= */
+
+.workout-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-bottom: 88px; /* space for FAB */
+}
+
+/* Workout Card (accordion) */
+.workout-card {
+  background: var(--surface);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-1);
+  overflow: hidden;
+}
+
+.workout-card__header {
+  display: flex;
+  align-items: center;
+  padding: 14px 12px 14px 16px;
+  gap: 8px;
+}
+
+.workout-card__header-left {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.workout-card__chevron {
+  font-size: 22px;
+  color: var(--on-surface-medium);
+  transition: transform .3s ease;
+  flex-shrink: 0;
+}
+
+.workout-card.open .workout-card__chevron { transform: rotate(180deg); }
+
+.workout-card__info { min-width: 0; }
+
+.workout-card__name {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--on-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.workout-card__count {
+  font-size: 12px;
+  color: var(--on-surface-medium);
+  margin-top: 2px;
+  display: block;
+}
+
+.workout-card__actions {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.workout-card__body {
+  display: none;
+  border-top: 1px solid var(--outline);
+}
+
+.workout-card.open .workout-card__body { display: block; }
+
+/* Exercise rows */
+.exercise-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 12px 11px 16px;
+  border-bottom: 1px solid var(--outline);
+}
+
+.exercise-row:last-of-type { border-bottom: none; }
+
+.exercise-row__dot {
+  width: 8px; height: 8px;
+  background: var(--primary);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.exercise-row__info { flex: 1; min-width: 0; }
+
+.exercise-row__name {
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--on-surface);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.exercise-row__meta {
+  font-size: 12px;
+  color: var(--on-surface-medium);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.exercise-row__actions { display: flex; gap: 0; flex-shrink: 0; }
+
+/* Add Exercise Button */
+.add-exercise-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 13px 16px;
+  color: var(--primary);
+  font-size: 14px;
+  font-weight: 500;
+  border: none;
+  background: transparent;
+  width: 100%;
+  transition: background .15s;
+  border-top: 1px solid var(--outline);
+}
+
+.add-exercise-btn:active { background: var(--primary-container); }
+.add-exercise-btn .material-icons-round { font-size: 20px; }
+
+/* =============================================
+   ICON BUTTONS
+   ============================================= */
+.icon-btn {
+  width: 36px; height: 36px;
+  border-radius: 50%;
+  border: none;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--on-surface-medium);
+  transition: background .15s, color .15s;
+}
+
+.icon-btn:active { background: var(--surface-variant); }
+.icon-btn.danger:active {
+  background: var(--error-container);
+  color: var(--error);
+}
+
+.icon-btn .material-icons-round { font-size: 20px; }
+
+/* =============================================
+   FAB
+   ============================================= */
+.fab {
+  position: fixed;
+  /* Account for bottom nav + safe area + spacing */
+  bottom: calc(var(--nav-total) + 16px);
+  right: calc(16px + var(--safe-right));
+  width: 56px; height: 56px;
+  border-radius: 16px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-3);
+  z-index: 99;
+  transition: transform .15s, box-shadow .15s;
+  touch-action: manipulation;
+}
+
+.fab:active {
+  transform: scale(.93);
+  box-shadow: var(--shadow-1);
+}
+
+.fab .material-icons-round { font-size: 26px; }
+
+/* =============================================
+   MODALS
+   ============================================= */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.5);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 200;
+  opacity: 0;
+  pointer-events: none; /* standard value — 'all' is invalid in Safari */
+  transition: opacity .25s;
+}
+
+.modal-overlay.open {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.modal {
+  background: var(--surface);
+  border-radius: var(--r-lg) var(--r-lg) 0 0;
+  padding: 24px 20px calc(32px + var(--safe-bottom));
+  width: 100%;
+  max-width: 600px;
+  max-height: 92vh;
+  max-height: 92dvh;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  transform: translateY(100%);
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
+}
+
+.modal-overlay.open .modal { transform: translateY(0); }
+
+.modal--small { padding-bottom: 24px; }
+
+/* Drag handle indicator */
+.modal::before {
+  content: '';
+  display: block;
+  width: 32px; height: 4px;
+  background: var(--outline);
+  border-radius: 2px;
+  margin: 0 auto 20px;
+}
+
+.modal__title {
+  font-size: 18px;
+  font-weight: 600;
+  color: var(--on-surface);
+  margin-bottom: 20px;
+}
+
+.modal__text {
+  font-size: 14px;
+  color: var(--on-surface-medium);
+  line-height: 1.55;
+  margin-bottom: 24px;
+}
+
+.modal__actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 20px;
+}
+
+/* =============================================
+   FORMS
+   ============================================= */
+.form-field { margin-bottom: 14px; }
+
+.form-label {
+  display: block;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--on-surface-medium);
+  text-transform: uppercase;
+  letter-spacing: .6px;
+  margin-bottom: 6px;
+}
+
+.form-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid var(--outline);
+  border-radius: var(--r-sm);
+  /* iOS Safari faz zoom automático em inputs com font-size < 16px — manter em 16px */
+  font-size: 16px;
+  color: var(--on-surface);
+  background: var(--surface);
+  outline: none;
+  transition: border-color .2s;
+  -webkit-appearance: none;
+  /* Prevents double-tap zoom on input tap in iOS */
+  touch-action: manipulation;
+}
+
+.form-input::placeholder { color: var(--on-surface-low); }
+
+.form-input:focus { border-color: var(--primary); }
+
+.form-input.invalid {
+  border-color: var(--error);
+  animation: shake .35s ease;
+}
+
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%      { transform: translateX(-5px); }
+  60%      { transform: translateX(5px); }
+  80%      { transform: translateX(-3px); }
+}
+
+.form-textarea {
+  min-height: 80px;
+  max-height: 160px;
+  line-height: 1.5;
+}
+
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+/* =============================================
+   BUTTONS
+   ============================================= */
+.btn-filled {
+  padding: 10px 22px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-full);
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: .1px;
+  transition: box-shadow .15s, transform .1s;
+}
+
+.btn-filled:active { transform: scale(.96); }
+
+.btn-text {
+  padding: 10px 16px;
+  background: transparent;
+  color: var(--primary);
+  border: none;
+  border-radius: var(--r-full);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-text:active { background: var(--primary-container); }
+
+.btn-text--small { padding: 6px 10px; font-size: 13px; }
+
+.btn-danger {
+  padding: 10px 22px;
+  background: var(--error);
+  color: #fff;
+  border: none;
+  border-radius: var(--r-full);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-danger:active { transform: scale(.96); }
+
+/* =============================================
+   EMPTY STATE
+   ============================================= */
+.empty-state {
+  text-align: center;
+  padding: 56px 24px 32px;
+}
+
+.empty-state__icon {
+  font-size: 72px;
+  color: var(--outline);
+  display: block;
+  margin-bottom: 18px;
+}
+
+.empty-state__title {
+  font-size: 18px;
+  font-weight: 500;
+  color: var(--on-surface-medium);
+  margin-bottom: 8px;
+}
+
+.empty-state__subtitle {
+  font-size: 14px;
+  color: var(--on-surface-low);
+  line-height: 1.6;
+}
+
+/* =============================================
+   SNACKBAR
+   ============================================= */
+.snackbar {
+  position: fixed;
+  /* Sits above bottom nav, including safe area */
+  bottom: calc(var(--nav-total) + 12px);
+  left: 12px; right: 12px;
+  background: #303134;
+  color: #fff;
+  padding: 13px 16px;
+  border-radius: var(--r-sm);
+  font-size: 14px;
+  box-shadow: var(--shadow-3);
+  z-index: 300;
+  transform: translateY(calc(100% + var(--nav-total) + 20px));
+  transition: transform .3s cubic-bezier(.4,0,.2,1);
+  max-width: 580px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.snackbar.show { transform: translateY(0); }
+
+/* =============================================
+   RESPONSIVE — Tablet / Desktop
+   ============================================= */
+@media (min-width: 600px) {
+  .main-content {
+    max-width: 540px;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .modal-overlay {
+    align-items: center;
+    padding: 16px;
+  }
+
+  .modal {
+    border-radius: var(--r-lg);
+    max-width: 460px;
+    /* No bottom safe area needed on desktop */
+    padding-bottom: 32px;
+    transform: scale(.92) translateY(0);
+  }
+
+  .modal-overlay.open .modal {
+    transform: scale(1) translateY(0);
+  }
+
+  .fab {
+    right: calc(50% - 270px + 16px);
+  }
+
+  .snackbar {
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%) translateY(calc(100% + var(--nav-total) + 20px));
+    width: 400px;
+  }
+
+  .snackbar.show {
+    transform: translateX(-50%) translateY(0);
+  }
+}
