@@ -4,6 +4,12 @@ Aplicativo web para organizar e executar treinos de academia, com foco em uso r�
 
 Projeto em produção local com interface estilo app, suporte a PWA, persistência no navegador e backup por arquivo JSON.
 
+## Acesso ao projeto
+
+Você pode acessar a aplicação publicada em:
+
+https://lucasfm95.github.io/gym-workout/
+
 ## Funcionalidades
 
 - Cadastro de treinos
